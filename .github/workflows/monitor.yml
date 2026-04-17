@@ -1,0 +1,49 @@
+name: 🎫 Монитор билетов Локомотив
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Каждые 15 минут
+  workflow_dispatch:        # Ручной запуск кнопкой
+
+jobs:
+  check-tickets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # 🔥 Кэш pip (ускоряет установку с 40с до 3с)
+    - name: Cache pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: ${{ runner.os }}-pip-
+
+    # 🔥 Кэш браузеров Playwright (ускоряет с 80с до 2с)
+    - name: Cache Playwright
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: ${{ runner.os }}-playwright-
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        playwright install chromium
+
+    - name: Run monitor
+      env:
+        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        HEADLESS: true
+        CHECK_INTERVAL: 10
+        RUN_ONCE: true
+      run: python main.py

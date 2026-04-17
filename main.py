@@ -3,6 +3,7 @@
 🎫 Монитор билетов ХК Локомотив
 Отслеживает появление билетов на заданные матчи и отправляет уведомления в Telegram.
 """
+import os
 import asyncio
 import logging
 import re
@@ -20,6 +21,7 @@ from config import (
 # 🔧 Логирование
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger(__name__)
+RUN_ONCE = os.getenv("RUN_ONCE", "false").lower() == "true"
 
 # 🔒 Автоматический SSL-фикс ТОЛЬКО для локального запуска на macOS
 # В облаке (Linux) он не применяется и не мешает работе.
@@ -157,7 +159,11 @@ async def main():
             except Exception as e:
                 logger.error(f"💥 Ошибка цикла: {e}")
                 await asyncio.sleep(30)  # Пауза при ошибке, чтобы не спамить
-
+            # 🏁 Если запущено через GitHub Actions — выходим после проверки
+            if RUN_ONCE:
+                logger.info("✅ Проверка завершена. Завершение работы.")
+                break
+                        
             await asyncio.sleep(CHECK_INTERVAL)
 
 if __name__ == "__main__":
