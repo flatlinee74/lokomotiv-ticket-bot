@@ -139,7 +139,7 @@ async def main():
                 for ev in TARGET_EVENTS:
                     if notified[ev["id"]]: continue  # Уже уведомили об этом матче
                     
-                    if await check_event_via_html(page, ev):
+                    if True:
                         msg = NOTIFY_TEMPLATE.format(
                             opponent=ev["opponent"].title(),
                             label=ev["label"],
